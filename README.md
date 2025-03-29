@@ -1,2 +1,2 @@
 # bellcanov
-cool pentesting firmware inspired from ESP32Marauder
+cool pentesting firmware inspired from ESP32Marauder and Bruce
