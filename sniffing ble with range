@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#include "esp_gap_ble_api.h"
+#include "esp_bt_device.h"
+
+static const char *TAG = "BLE_SNIFFER";
+
+// Known identifiers for the devices
+const char* KNOWN_DEVICES[] = {
+    "Flipper", "Flipper Zero", "Card Skimmer", "AirTag", "Apple Inc."
+};
+const int KNOWN_DEVICES_COUNT = sizeof(KNOWN_DEVICES) / sizeof(KNOWN_DEVICES[0]);
+
+// Function to check if a device name matches known identifiers
+bool is_known_device(const char* device_name) {
+    for (int i = 0; i < KNOWN_DEVICES_COUNT; i++) {
+        if (strstr(device_name, KNOWN_DEVICES[i]) != NULL) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// GAP callback function
+void gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
+    switch (event) {
+        case ESP_GAP_BLE_SCAN_RESULT_EVT:
+            if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
+                uint8_t *adv_name = NULL;
+                uint8_t adv_name_len = 0;
+                adv_name = esp_ble_resolve_adv_data(param->scan_rst.ble_adv, ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
+
+                if (adv_name != NULL) {
+                    char device_name[adv_name_len + 1];
+                    strncpy(device_name, (char*)adv_name, adv_name_len);
+                    device_name[adv_name_len] = '\0';
+
+                    if (is_known_device(device_name)) {
+                        ESP_LOGI(TAG, "Found known device: %s (%02x:%02x:%02x:%02x:%02x:%02x)",
+                                 device_name,
+                                 param->scan_rst.bda[0], param->scan_rst.bda[1], param->scan_rst.bda[2],
+                                 param-> ▋
