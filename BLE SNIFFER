@@ -1,0 +1,53 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <array>
+
+// Known identifiers for the devices
+const std::vector<std::string> KNOWN_DEVICES = {
+    "Flipper", "Flipper Zero", "Card Skimmer", "AirTag", "Apple Inc."
+};
+
+// Function to execute a command and get the result
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw std::runtime_error("popen() failed!");
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+// Function to check if a device name matches known identifiers
+bool isKnownDevice(const std::string& deviceName) {
+    return std::any_of(KNOWN_DEVICES.begin(), KNOWN_DEVICES.end(), [&](const std::string& knownDevice) {
+        return deviceName.find(knownDevice) != std::string::npos;
+    });
+}
+
+int main() {
+    // Command to scan for BLE devices
+    const char* scan_cmd = "bluetoothctl scan on";
+
+    std::cout << "Scanning for BLE devices..." << std::endl;
+    std::string scan_result = exec(scan_cmd);
+
+    std::istringstream stream(scan_result);
+    std::string line;
+    while (std::getline(stream, line)) {
+        // Check if the line contains a known device identifier
+        if (isKnownDevice(line)) {
+            std::cout << "Found known device: " << line << std::endl;
+        }
+    }
+
+    std::cout << "Scan complete." << std::endl;
+    return 0;
+}
