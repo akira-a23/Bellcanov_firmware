@@ -1,0 +1,32 @@
+#include <iostream>
+#include <pcap.h>
+#include <netinet/if_ether.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#include <netinet/ip_icmp.h>
+
+void packetHandler(u_char *userData, const struct pcap_pkthdr* pkthdr, const u_char* packet) {
+    const struct ether_header* ethernetHeader;
+    const struct ip* ipHeader;
+    const struct tcphdr* tcpHeader;
+    const struct udphdr* udpHeader;
+    char sourceIp[INET_ADDRSTRLEN];
+    char destIp[INET_ADDRSTRLEN];
+
+    ethernetHeader = (struct ether_header*)packet;
+
+    if (ntohs(ethernetHeader->ether_type) == ETHERTYPE_IP) {
+        ipHeader = (struct ip*)(packet + sizeof(struct ether_header));
+        inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIp, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(ipHeader->ip_dst), destIp, INET_ADDRSTRLEN);
+
+        std::cout << "From: " << sourceIp << " To: " << destIp << std::endl;
+
+        if (ipHeader->ip_p == IPPROTO_TCP) {
+            tcpHeader = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            std::cout << "Protocol: TCP" << std::endl;
+            std::cout << "Source Port: " << ntohs(ttcpHeader->th_sport) << std::endl;
+            std::cout << "Destination Port: " << ntohs(tcpHeader->th_dport) << std::endl;
+        } else if (ipHeader->ip_p == IPPROTO_UDP) {
+            udpHeader = (struct udphdr*)(packet + ▋
